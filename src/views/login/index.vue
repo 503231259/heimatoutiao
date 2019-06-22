@@ -15,11 +15,11 @@
               <el-input v-model="form.code" placeholder="验证码"></el-input>
             </el-col>
             <el-col :span="10" :offset="2">
-              <el-button>获取验证码</el-button>
+              <el-button @click="hansleSendCode">获取验证码</el-button>
             </el-col>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" class="btn-login">登录</el-button>
+            <el-button type="primary" class="btn-login" @click="onSubmit">登录</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -28,17 +28,35 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'AppLogin',
   data () {
     return {
       form: {
-        mobile: '',
+        mobile: '13351234766',
         code: ''
       },
       rules: {
         name: []
       }
+    }
+  },
+  methods: {
+    onSubmit () {
+    //   console.log("登录");
+    },
+    hansleSendCode () {
+      //   console.log('验证码');
+      const { mobile } = this.form
+
+      axios({
+        method: 'GET',
+        url: `http://ttapi.research.itcast.cn/mp/v1_0/captchas/${mobile}`
+      }).then(res => {
+        console.log(res.data)
+      })
     }
   }
 }
@@ -64,14 +82,14 @@ export default {
       width: 200px;
     }
   }
-//   显示的主体
+  //   显示的主体
   .login-form-wrap {
     background-color: #fff;
     padding: 50px;
     border-radius: 10px;
 
     .btn-login {
-       width: 100%;
+      width: 100%;
     }
   }
 }
