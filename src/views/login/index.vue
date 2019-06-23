@@ -5,7 +5,7 @@
         <img src="./logo_index.png" alt="黑马头条">
       </div>
       <div class="login-form">
-        <el-form :model="form" ref="ruleForm" :rules="rules">
+        <el-form :model="form" :ref="ruleForm" :rules="rules">
           <el-form-item prop="mobile">
             <el-input v-model="form.mobile" placeholder="手机号码"></el-input>
           </el-form-item>
@@ -92,8 +92,10 @@ export default {
           }
         })
     },
+
     hansleSendCode () {
-      //   console.log('验证码');
+      //   console.log('验证码');获取对部分表单字段进行校验的方法
+      // 校验手机号是否有效
       this.$refs['ruleForm'].validateField('mobile', errorMessage => {
         if (errorMessage.trim().length > 0) {
           return
