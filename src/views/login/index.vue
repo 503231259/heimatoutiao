@@ -18,6 +18,10 @@
               <el-button @click="hansleSendCode">获取验证码</el-button>
             </el-col>
           </el-form-item>
+           <el-form-item prop="agree">
+            <el-checkbox v-model="form.agree"></el-checkbox>
+            <span>我已阅读并同意<a href="#">用户协议</a>和<a href="#">隐私条款</a></span>
+          </el-form-item>
           <el-form-item>
             <el-button type="primary" class="btn-login" @click="handleLogin">登录</el-button>
           </el-form-item>
@@ -28,103 +32,117 @@
 </template>
 
 <script>
-import axios from "axios";
-import "@/vendor/gt";
+import axios from 'axios'
+import '@/vendor/gt'
 
 export default {
-  name: "AppLogin",
-  data() {
+  name: 'AppLogin',
+  data () {
     return {
       form: {
-        mobile: "",
-        code: ""
+        mobile: '',
+        code: '',
+        agree: ''
       },
       rules: {
         mobile: [
-          { required: true, message: "请输入手机号", trigger: "blur" },
-          { len: 11, message: "长度必须为11个字符", trigger: "blur" }
+          { required: true, message: '请输入手机号', trigger: 'blur' },
+          { len: 11, message: '长度必须为11个字符', trigger: 'blur' }
         ],
         code: [
-          { required: true, message: "请输入验证码", trigger: "blur" },
-          { len: 6, message: "长度必须为6个字符", trigger: "blur" }
+          { required: true, message: '请输入验证码', trigger: 'blur' },
+          { len: 6, message: '长度必须为6个字符', trigger: 'blur' }
+        ],
+        agree: [
+          { required: true, message: '请同意用户协议', trigger: 'change' },
+          { required: /true/, message: '请同意用户协议', trigger: 'change' }
         ]
       },
       captchaObj: null
-    };
+    }
   },
   methods: {
-    handleLogin() {
+    handleLogin () {
       //   console.log("登录");
-      this.$refs["ruleForm"].validate(valid => {
+      this.$refs['ruleForm'].validate(valid => {
         if (!valid) {
-          return;
+          return
         }
-        this.submitLogin();
-      });
+        this.submitLogin()
+      })
     },
-    submitLogin() {
+    submitLogin () {
       axios({
-        method: "post",
-        url: "http://ttapi.research.itcast.cn/mp/v1_0/authorizations",
+        method: 'post',
+        url: 'http://ttapi.research.itcast.cn/mp/v1_0/authorizations',
         data: this.form
       })
         .then(res => {
           this.$message({
-            message: "恭喜你，这是一条成功消息",
-            type: "success"
-          });
+            message: '恭喜你，这是一条成功消息',
+            type: 'success'
+          })
           this.$router.push({
-            name: "home"
-          });
+            name: 'home'
+          })
         })
         .catch(err => {
           if (err.response.status === 400) {
-            this.$message.error("错了哦，这是一条错误消息");
+            this.$message.error('错了哦，这是一条错误消息')
           }
-        });
+        })
     },
-    hansleSendCode() {
+    hansleSendCode () {
       //   console.log('验证码');
-      const { mobile } = this.form;
+      this.$refs['ruleForm'].validateField('mobile', errorMessage => {
+        if (errorMessage.trim().length > 0) {
+          return
+        }
+        this.showGeetest()
+      })
+    },
+
+    showGeetest () {
+      const { mobile } = this.form
 
       if (this.captchaObj) {
-        return this.captchaObj.verify();
+        return this.captchaObj.verify()
         // console.log(this.captchaObj);
       }
 
       axios({
-        method: "GET",
+        method: 'GET',
         url: `http://ttapi.research.itcast.cn/mp/v1_0/captchas/${mobile}`
       }).then(res => {
-        let data = res.data.data;
+        let data = res.data.data
 
-        initGeetest(
+        window.initGeetest(
           {
             // 以下配置参数来自服务端 SDK
             gt: data.gt,
             challenge: data.challenge,
             offline: !data.success,
             new_captcha: data.new_captcha,
-            product: "bind"
+            product: 'bind'
           },
           captchaObj => {
-            this.captchaObj = captchaObj;
+            this.captchaObj = captchaObj
 
             captchaObj
-              .onReady(function() {
-                //验证码ready之后才能调用verify方法显示验证码
-                captchaObj.verify(); //显示验证码
+              .onReady(function () {
+                // 验证码ready之后才能调用verify方法显示验证码
+                captchaObj.verify() // 显示验证码
               })
-              .onSuccess(function() {
-                //your code
+              .onSuccess(function () {
+                // your code
                 // console.log('驗證成功');
                 const {
                   geetest_challenge: challenge,
                   geetest_seccode: seccode,
                   geetest_validate: validate
-                } = captchaObj.getValidate();
+                } = captchaObj.getValidate()
                 axios({
-                  method: "get",
+                  method: 'get',
                   url: `http://ttapi.research.itcast.cn/mp/v1_0/sms/codes/${mobile}`,
                   params: {
                     challenge,
@@ -132,15 +150,15 @@ export default {
                     validate
                   }
                 }).then(res => {
-                  console.log(res.data);
-                });
-              });
+                  console.log(res.data)
+                })
+              })
           }
-        );
-      });
+        )
+      })
     }
   }
-};
+}
 </script>
 
 <style lang="less" scoped>
