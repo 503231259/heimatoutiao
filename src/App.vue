@@ -8,14 +8,13 @@
 export default {
   name: 'App',
   data () {
-    return {
-    }
+    return {}
   }
 }
 </script>
 
 <style lang="less" scoped>
-#app{
+#app {
   height: 100%;
 }
 </style>
