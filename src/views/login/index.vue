@@ -5,7 +5,7 @@
         <img src="./logo_index.png" alt="黑马头条">
       </div>
       <div class="login-form">
-        <el-form :model="form" :ref="ruleForm" :rules="rules">
+        <el-form :model="form" ref="ruleForm" :rules="rules">
           <el-form-item prop="mobile">
             <el-input v-model="form.mobile" placeholder="手机号码"></el-input>
           </el-form-item>
@@ -15,7 +15,13 @@
               <el-input v-model="form.code" placeholder="验证码"></el-input>
             </el-col>
             <el-col :span="10" :offset="2">
-              <el-button @click="hansleSendCode">获取验证码</el-button>
+              <!-- <el-button @click="hansleSendCode">获取验证码</el-button> -->
+              <el-button
+              @click="handleSendCode"
+              :disabled="!!codeTimer"
+              >
+              {{ codeTimer ? `剩余${codeSecons}秒` : '获取验证码' }}
+              </el-button>
             </el-col>
           </el-form-item>
            <el-form-item prop="agree">
@@ -34,6 +40,7 @@
 <script>
 import axios from 'axios'
 import '@/vendor/gt'
+const initCodeSeconds = 60
 
 export default {
   name: 'AppLogin',
@@ -58,7 +65,9 @@ export default {
           { required: /true/, message: '请同意用户协议', trigger: 'change' }
         ]
       },
-      captchaObj: null
+      captchaObj: null,
+      codeSecons: initCodeSeconds,
+      codeTimer: null
     }
   },
   methods: {
@@ -93,7 +102,7 @@ export default {
         })
     },
 
-    hansleSendCode () {
+    handleSendCode () {
       //   console.log('验证码');获取对部分表单字段进行校验的方法
       // 校验手机号是否有效
       this.$refs['ruleForm'].validateField('mobile', errorMessage => {
@@ -103,7 +112,6 @@ export default {
         this.showGeetest()
       })
     },
-
     showGeetest () {
       const { mobile } = this.form
 
@@ -127,15 +135,16 @@ export default {
             new_captcha: data.new_captcha,
             product: 'bind'
           },
+          // 函数中的function定义的函数中的this指向window
           captchaObj => {
             this.captchaObj = captchaObj
 
             captchaObj
-              .onReady(function () {
+              .onReady(() => {
                 // 验证码ready之后才能调用verify方法显示验证码
                 captchaObj.verify() // 显示验证码
               })
-              .onSuccess(function () {
+              .onSuccess(() => {
                 // your code
                 // console.log('驗證成功');
                 const {
@@ -152,12 +161,25 @@ export default {
                     validate
                   }
                 }).then(res => {
-                  console.log(res.data)
+                  // console.log(res.data)
+                  // 发送短信之后,开始倒计时
+                  this.codeCountDown()
                 })
               })
           }
         )
       })
+    },
+    // 倒计时
+    codeCountDown () {
+      this.codeTimer = window.setInterval(() => {
+        this.codeSecons--
+        if (this.codeSecons <= 0) {
+          this.codeSecons = initCodeSeconds// 让倒计时事件回到初始状态
+          window.clearInterval(this.codeTimer) // 清除定时器
+          this.codeTimer = null // 清除倒计时定时器标志
+        }
+      }, 1000)
     }
   }
 }
