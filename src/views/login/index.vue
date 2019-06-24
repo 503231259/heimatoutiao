@@ -38,19 +38,25 @@
 </template>
 
 <script>
+// 引入第三方插件
 import axios from 'axios'
+// 引入 element
 import '@/vendor/gt'
+// 定时器时间
 const initCodeSeconds = 60
 
 export default {
   name: 'AppLogin',
   data () {
     return {
+      // 表单数据
       form: {
         mobile: '',
         code: '',
         agree: ''
       },
+      loginLoading: false,
+      // 规则
       rules: {
         mobile: [
           { required: true, message: '请输入手机号', trigger: 'blur' },
@@ -65,67 +71,99 @@ export default {
           { required: /true/, message: '请同意用户协议', trigger: 'change' }
         ]
       },
+      // 通过 initGeetest 得到的极验验证码对象
       captchaObj: null,
+      // 定时器定时时间
       codeSecons: initCodeSeconds,
-      codeTimer: null
+      // 定时器
+      codeTimer: null,
+      // 保存初始化验证码之后发送短信的手机号
+      sendMobile: ''
     }
   },
   methods: {
+    // 点击登录
     handleLogin () {
       //   console.log("登录");
+      // 检查表单
       this.$refs['ruleForm'].validate(valid => {
         if (!valid) {
           return
         }
+        // 发送表单,登录
         this.submitLogin()
       })
     },
+    // 发送表单数据,登录(封装)
     submitLogin () {
+      // 发送请求
       axios({
+        // 发送类型
         method: 'post',
+        // 发送地址
         url: 'http://ttapi.research.itcast.cn/mp/v1_0/authorizations',
+        // 发送数据
         data: this.form
-      })
+      })// 接收数据
         .then(res => {
+          // 弹出框
           this.$message({
             message: '恭喜你，这是一条成功消息',
             type: 'success'
           })
+          // 路由跳转
           this.$router.push({
             name: 'home'
           })
-        })
+        })// 接收错误消息
         .catch(err => {
+          // 消息类型是400 提示
           if (err.response.status === 400) {
             this.$message.error('错了哦，这是一条错误消息')
           }
         })
     },
-
+    // 发送验证码
     handleSendCode () {
       //   console.log('验证码');获取对部分表单字段进行校验的方法
-      // 校验手机号是否有效
+      // 校验手机号是否有效   传入要校验的一个数据
       this.$refs['ruleForm'].validateField('mobile', errorMessage => {
+        // 返回数据,分析有用的
         if (errorMessage.trim().length > 0) {
+          // 满做这个条件  则停止运行
           return
         }
-        this.showGeetest()
+        // 查看是否有验证插件对象
+        if (this.captchaObj) {
+          // 如果验证的手机号码不等于网页上的手机号码
+          if (this.form.mobile !== this.sendMobile) {
+            // 移除之前的验证码框dom
+            document.body.removeChild(document.querySelector('.geetest_panel'))
+            // 重新发送
+            this.showGeetest()
+          } else {
+            // 一致的话
+            this.captchaObj.verify()
+          }
+        } else {
+          //  发送验证码
+          this.showGeetest()
+        }
       })
     },
+    // 发送验证码(封装)
     showGeetest () {
-      const { mobile } = this.form
-
-      if (this.captchaObj) {
-        return this.captchaObj.verify()
-        // console.log(this.captchaObj);
-      }
-
+      // 发送请求
       axios({
+        // 方式
         method: 'GET',
-        url: `http://ttapi.research.itcast.cn/mp/v1_0/captchas/${mobile}`
+        // 地址
+        url: `http://ttapi.research.itcast.cn/mp/v1_0/captchas/${this.form.mobile}`
+        // 接收结果
       }).then(res => {
+        // 保存数据
         let data = res.data.data
-
+        // 使用极验的文档(查看极验文档)
         window.initGeetest(
           {
             // 以下配置参数来自服务端 SDK
@@ -142,7 +180,9 @@ export default {
             captchaObj
               .onReady(() => {
                 // 验证码ready之后才能调用verify方法显示验证码
-                captchaObj.verify() // 显示验证码
+                // 将表单中的手机号保存另一份
+                this.sendMobile = this.form.mobile
+                captchaObj.verify() // 显示验证码(弹出框)
               })
               .onSuccess(() => {
                 // your code
@@ -152,14 +192,19 @@ export default {
                   geetest_seccode: seccode,
                   geetest_validate: validate
                 } = captchaObj.getValidate()
+                // 发送请求
                 axios({
+                  // 方式
                   method: 'get',
-                  url: `http://ttapi.research.itcast.cn/mp/v1_0/sms/codes/${mobile}`,
+                  // 地址
+                  url: `http://ttapi.research.itcast.cn/mp/v1_0/sms/codes/${this.formmobile}`,
+                  // get方式的数据
                   params: {
                     challenge,
                     seccode,
                     validate
                   }
+                  // 接收数据
                 }).then(res => {
                   // console.log(res.data)
                   // 发送短信之后,开始倒计时
