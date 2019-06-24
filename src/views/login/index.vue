@@ -18,7 +18,7 @@
               <!-- <el-button @click="hansleSendCode">获取验证码</el-button> -->
               <el-button
               @click="handleSendCode"
-              :disabled="!!codeTimer"
+              :disabled="!!codeTimer || codeLoading"
               >
               {{ codeTimer ? `剩余${codeSecons}秒` : '获取验证码' }}
               </el-button>
@@ -78,7 +78,8 @@ export default {
       // 定时器
       codeTimer: null,
       // 保存初始化验证码之后发送短信的手机号
-      sendMobile: ''
+      sendMobile: '',
+      codeLoading: false
     }
   },
   methods: {
@@ -153,6 +154,8 @@ export default {
     },
     // 发送验证码(封装)
     showGeetest () {
+      // 禁用验证码按钮
+      this.codeLoading = true
       // 发送请求
       axios({
         // 方式
@@ -183,6 +186,7 @@ export default {
                 // 将表单中的手机号保存另一份
                 this.sendMobile = this.form.mobile
                 captchaObj.verify() // 显示验证码(弹出框)
+                this.codeLoading = false// 验证按钮不禁用
               })
               .onSuccess(() => {
                 // your code
