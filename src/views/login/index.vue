@@ -107,6 +107,9 @@ export default {
         data: this.form
       })// 接收数据
         .then(res => {
+          // 登录成功后,信息保存到localStorage里
+          // console.log(res.data.data)
+          window.localStorage.setItem('user_info', JSON.stringify(res.data.data))
           // 弹出框
           this.$message({
             message: '恭喜你，这是一条成功消息',
@@ -201,7 +204,7 @@ export default {
                   // 方式
                   method: 'get',
                   // 地址
-                  url: `http://ttapi.research.itcast.cn/mp/v1_0/sms/codes/${this.formmobile}`,
+                  url: `http://ttapi.research.itcast.cn/mp/v1_0/sms/codes/${this.form.mobile}`,
                   // get方式的数据
                   params: {
                     challenge,
