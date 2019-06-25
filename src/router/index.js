@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import nprogress from 'nprogress'
 
 Vue.use(Router)
 
@@ -26,6 +27,7 @@ const router = new Router({
 
 // 路由守卫
 router.beforeEach((to, from, next) => {
+  nprogress.start()
   // 获取到登录信息
   let userInfo = window.localStorage.getItem('user_info')
   // 想要去的路径不是登录页面
@@ -48,6 +50,10 @@ router.beforeEach((to, from, next) => {
       next()
     }
   }
+})
+
+router.afterEach((route) => {
+  nprogress.done()
 })
 
 export default router
