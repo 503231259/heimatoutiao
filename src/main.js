@@ -9,8 +9,12 @@ import '../node_modules/element-ui/lib/theme-chalk/index.css'
 import 'nprogress/nprogress.css'
 // 导入全局样式
 import './styles/index.css'
+import axios from 'axios'
+Vue.prototype.$http = axios
 // 挂载模块
 Vue.use(ElementUI)
+
+axios.defaults.baseURL = 'http://ttapi.research.itcast.cn/mp/v1_0/'
 
 Vue.config.productionTip = false
 

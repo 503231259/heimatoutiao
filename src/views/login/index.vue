@@ -39,7 +39,7 @@
 
 <script>
 // 引入第三方插件
-import axios from 'axios'
+// import axios from 'axios' 已经把axios放到vue原型里了,这里就不需要引入了
 // 引入 element
 import '@/vendor/gt'
 // 定时器时间
@@ -98,11 +98,11 @@ export default {
     // 发送表单数据,登录(封装)
     submitLogin () {
       // 发送请求
-      axios({
+      this.$http({
         // 发送类型
         method: 'post',
         // 发送地址
-        url: 'http://ttapi.research.itcast.cn/mp/v1_0/authorizations',
+        url: '/authorizations',
         // 发送数据
         data: this.form
       })// 接收数据
@@ -160,11 +160,11 @@ export default {
       // 禁用验证码按钮
       this.codeLoading = true
       // 发送请求
-      axios({
+      this.$http({
         // 方式
         method: 'GET',
         // 地址
-        url: `http://ttapi.research.itcast.cn/mp/v1_0/captchas/${this.form.mobile}`
+        url: `/captchas/${this.form.mobile}`
         // 接收结果
       }).then(res => {
         // 保存数据
@@ -200,11 +200,11 @@ export default {
                   geetest_validate: validate
                 } = captchaObj.getValidate()
                 // 发送请求
-                axios({
+                this.$http({
                   // 方式
                   method: 'get',
                   // 地址
-                  url: `http://ttapi.research.itcast.cn/mp/v1_0/sms/codes/${this.form.mobile}`,
+                  url: `/sms/codes/${this.form.mobile}`,
                   // get方式的数据
                   params: {
                     challenge,
